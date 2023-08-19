@@ -7,15 +7,16 @@ from mlflow.entities import ViewType
 from mlflow.tracking import MlflowClient
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
+from prefect import flow, task_runners
 
 HPO_EXPERIMENT_NAME = "random-forest-hyperopt"
 EXPERIMENT_NAME = "random-forest-best-models"
 RF_PARAMS = ['max_depth', 'n_estimators', 'min_samples_split', 'min_samples_leaf', 'random_state', 'n_jobs']
 
 # Specify Public URL of EC2 instance where the MLflow tracking server is running
-TRACKING_SERVER_HOST = r"ec2-13-53-43-200.eu-north-1.compute.amazonaws.com"
+TRACKING_URI = r"file://C:/DFKI/Rwanda_GWP/code/mlops/mlruns"
 
-mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000") 
+mlflow.set_tracking_uri(TRACKING_URI)
 print(f"Tracking Server URI: '{mlflow.get_tracking_uri()}'")
 
 #specify name of experiment (will be created if it does not exist)
@@ -46,11 +47,11 @@ def train_and_log_model(data_path, params):
         test_rmse = mean_squared_error(y_test, rf.predict(X_test), squared=False)
         mlflow.log_metric("test_rmse", test_rmse)
 
-
+@flow(task_runner=task_runners.SequentialTaskRunner(), name="register_best_model_flow")
 @click.command()
 @click.option(
     "--data_path",
-    default="./output",
+    default=r"C:\DFKI\Rwanda_GWP\code\mlops\data",
     help="Location where the processed NYC taxi trip data was saved"
 )
 @click.option(

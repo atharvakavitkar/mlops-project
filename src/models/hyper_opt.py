@@ -9,9 +9,9 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 
 # Specify Public URL of EC2 instance where the MLflow tracking server is running
-TRACKING_SERVER_HOST = r""
+TRACKING_URI = r"file://C:/DFKI/Rwanda_GWP/code/mlops/mlruns"
 
-mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000") 
+mlflow.set_tracking_uri(TRACKING_URI) 
 print(f"Tracking Server URI: '{mlflow.get_tracking_uri()}'")
 
 #specify name of experiment (will be created if it does not exist)
@@ -26,7 +26,7 @@ def load_pickle(filename):
 @click.command()
 @click.option(
     "--data_path",
-    default="./output",
+    default=r"C:\DFKI\Rwanda_GWP\code\mlops\data",
     help="Location where the processed NYC taxi trip data was saved"
 )
 @click.option(

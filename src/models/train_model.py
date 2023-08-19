@@ -5,29 +5,30 @@ import mlflow
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
+from prefect import flow,task, task_runners
 
 
 # Specify Public URL of EC2 instance where the MLflow tracking server is running
-TRACKING_SERVER_HOST = r""
+TRACKING_URI = r"file://C:/DFKI/Rwanda_GWP/code/mlops/mlruns"
 
-mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000") 
+mlflow.set_tracking_uri(TRACKING_URI) 
 print(f"Tracking Server URI: '{mlflow.get_tracking_uri()}'")
 
 #specify name of experiment (will be created if it does not exist)
 mlflow.set_experiment("mlflow-exp")
 
-
+@task
 def load_pickle(filename: str):
     with open(filename, "rb") as f_in:
         return pickle.load(f_in)
 
-
 @click.command()
 @click.option(
     "--data_path",
-    default="./output",
+    default=r"C:\DFKI\Rwanda_GWP\code\mlops\data",
     help="Location where the processed NYC taxi trip data was saved"
 )
+@flow(task_runner=task_runners.SequentialTaskRunner(), name="training_flow")
 def run_train(data_path: str):
     mlflow.sklearn.autolog()
     X_train, y_train = load_pickle(os.path.join(data_path, "train.pkl"))

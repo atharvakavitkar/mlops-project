@@ -2,7 +2,7 @@ import os
 import pickle
 import click
 import pandas as pd
-
+from prefect import flow, task_runners
 from sklearn.feature_extraction import DictVectorizer
 
 
@@ -45,6 +45,7 @@ def preprocess(df: pd.DataFrame, dv: DictVectorizer, fit_dv: bool = False):
     "--dest_path",
     help="Location where the resulting files will be saved"
 )
+@flow(task_runner=task_runners.SequentialTaskRunner(), name="dataprep_flow")
 def run_data_prep(raw_data_path: str, dest_path: str, dataset: str = "green"):
     # Load parquet files
     df_train = read_dataframe(
