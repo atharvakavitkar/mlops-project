@@ -1,57 +1,95 @@
-mlops-project
-==============================
+# MLOps Project
 
-ML project to demonstrate productionization of ML services — from training and experimenting to model deployment and monitoring.
+This is the demonstration project to show how to apply MLOps practices on data science project.
+The solution is based on [mlops-zoomcamp](https://github.com/DataTalksClub/mlops-zoomcamp) lectures.
+For demonstration purposes [NYC Yellow Taxi Trip Records](https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
+are used. The model showed here is designed to make fare predictions for each taxi trip using
+several simple features. This project does not cover extensive and advanced techniques of EDA, feature engineering
+and model design.q
 
-Project Organization
-------------
+### This project covers
 
-    ├── LICENSE
-    ├── Makefile           <- Makefile with commands like `make data` or `make train`
-    ├── README.md          <- The top-level README for developers using this project.
-    ├── data
-    │   ├── external       <- Data from third party sources.
-    │   ├── interim        <- Intermediate data that has been transformed.
-    │   ├── processed      <- The final, canonical data sets for modeling.
-    │   └── raw            <- The original, immutable data dump.
-    │
-    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
-    │
-    ├── models             <- Trained and serialized models, model predictions, or model summaries
-    │
-    ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-    │                         the creator's initials, and a short `-` delimited description, e.g.
-    │                         `1.0-jqp-initial-data-exploration`.
-    │
-    ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-    │
-    ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-    │   └── figures        <- Generated graphics and figures to be used in reporting
-    │
-    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-    │                         generated with `pip freeze > requirements.txt`
-    │
-    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    ├── src                <- Source code for use in this project.
-    │   ├── __init__.py    <- Makes src a Python module
-    │   │
-    │   ├── data           <- Scripts to download or generate data
-    │   │   └── make_dataset.py
-    │   │
-    │   ├── features       <- Scripts to turn raw data into features for modeling
-    │   │   └── build_features.py
-    │   │
-    │   ├── models         <- Scripts to train models and then use trained models to make
-    │   │   │                 predictions
-    │   │   ├── predict_model.py
-    │   │   └── train_model.py
-    │   │
-    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
-    │
-    └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
+- Demonstrates practical aspects of production ML services.
+- ML model lifecycle:
+  - Training and tracking experiments.
+  - Deployment of the scheduled jobs with the model in Production.
+  - Model deployment as a stream service that runs on cloud
+- Preparing the whole infrastructure for AWS using Infrastructure as Code (IaC) service (CloudFormation).
+- Best practices of software engineering:
+  - Unit tests
+  - Integration tests
+  - Linters
+  - Makefiles
+  - Pre-commit hooks
+  - CI/CD pipeline
 
+## Instructions
 
---------
+### Prerequisites
 
-<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+- [Docker](https://docs.docker.com/get-docker/)
+- [Poetry](https://python-poetry.org/docs/)
+- [AWS CLI](https://aws.amazon.com/cli/)
+
+### Data and model description
+
+As it has already been mentioned, here NYC Yellow Taxi dataset is used. The model will predict fare amount based on several
+features: `passengers_count`, `trip_distance`, `pickup_hour`, `pickup_minutes`, `day of week`.
+In the `mlops_pet/pipelines` folder the training and deployment code can be found. They are organized in prefect flows and split on tasks.
+
+### First steps
+
+To install the project with all extras simply run
+
+```
+poetry install -E tests -E deployment -E eda
+```
+
+This command will install simple CLI commands which you can execute using `mlops_pet` package.
+First of all you need to setup your environment variables. Please, run
+
+```
+mlops_pet setup
+```
+
+in your terminal and fill the values. At startup default values are configured to successfully run
+integration tests.
+
+You can run `mlops_pet --help` command to see other available commands
+
+### Tests
+
+To run tests which are defined in the Makefile type
+
+```
+make integration_test
+```
+
+This command will start the full test pipeline including unit tests which are required for
+the integration test.
+
+The integration test repeats production infrastructure locally using docker to start MLFlow and Prefect
+servers with the necessary storages and databases. It trains model, registers it, pulls it from the registry and uses it to make
+predictions using Kinesis stream.
+
+### Production infrastructure
+
+The whole infrastructure is defined in cloudformation folder. It consists of:
+
+- MLFlow server with Postgres DB and S3 bucket for tracking and storage servers.
+- Prefect server
+
+To deploy this infrastructure using your AWS account run
+
+```
+bash ./cloudformation/deploy-stack.sh
+```
+
+As outputs you will get several links for MLFlow server, Prefect server and S3 bucket.
+You can use them to setup production infrastructure by running `mlops_pet setup`.
+
+### Best practices
+
+- Simple unit tests and integration tests can be found in `tests` folder
+- Pre-commit hooks setup several checks including linters. The setup can be found in `.pre-commit-config.yaml`
+- `Makefile` is available in the root directory
